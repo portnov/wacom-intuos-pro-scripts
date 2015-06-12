@@ -18,3 +18,5 @@ MODE=$(( (MODE+1)%4 ))
 echo Setting mode to $MODE
 
 echo $MODE > $CONTROL
+
+wacom-ring-mode.sh $MODE
