@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -x
 
 sudo cp wacom-setup.sh /usr/local/sbin/
 sudo cp wacom-ring-mode.sh /usr/local/bin/
