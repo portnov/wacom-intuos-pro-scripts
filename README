@@ -1,0 +1,14 @@
+Wacom Intuos Pro managing scripts
+
+This is a set of scripts to set up and customize Wacom Intuos Pro tablets under Linux/X11/udev.
+These scripts work for my Wacom Intuos Pro M tablet. They can require some modifications to work
+with other similar models.
+
+The set includes:
+
+* 99-local.rules - Udev rules file, which runs wacom-setup.sh script when the tablet is attached.
+  Note that for models other than Intuos Pro M, you will need to change idProduct parameter.
+* wacom-setup.sh - Shell script which enables unpriviledged-user write access to the file under
+  /sys/bus/usb/ hierarchy, which is responsible to toggling LEDs on the tablet (near the ring).
+* wacom-switch-mode.sh - Shell script which toggles ring mode: 0 -> 1 -> 2 -> 3 -> 0 ...
+* install.sh - sample script that installs files described above to their intended locations.
