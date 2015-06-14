@@ -8,6 +8,8 @@ fi
 MODE=$1
 
 PAD=$(xsetwacom list dev | grep -o ".*pad")
+STYLUS=$(xsetwacom list dev | grep -o ".*stylus")
+TOUCH=$(xsetwacom list dev | grep -o ".*touch")
 
 case $MODE in
   0) DESCRIPTION="Brush size"
