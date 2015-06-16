@@ -1,5 +1,5 @@
 var profiles = {
-    'Krita': 'Krita',
+    'krita': 'Krita',
     'gimp': 'Gimp'
 };
 
@@ -39,8 +39,10 @@ function onFocus(client) {
       var newProfile = profiles[client.resourceClass];
       if (newProfile == undefined) {
           setTabletProfile(tablet, 'Default');
-      } else if (newProfile != oldProfile) 
+          print("Fallback to Default profile");
+      } else if (newProfile != oldProfile) {
           setTabletProfile(tablet, newProfile);
+          print("Switch to application profile: " + newProfile);
       }
     });
 }
