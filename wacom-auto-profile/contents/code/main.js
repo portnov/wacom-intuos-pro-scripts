@@ -37,9 +37,10 @@ function onFocus(client) {
     }
     withTabletProfile(function(tablet, oldProfile) {
       var newProfile = profiles[client.resourceClass];
-      if (newProfile == undefined) {
-          setTabletProfile(tablet, 'Default');
-      } else if (newProfile != oldProfile) 
+      if (newProfile != oldProfile) {
+          if (newProfile == undefined) {
+            newProfile = 'Default';
+          }
           setTabletProfile(tablet, newProfile);
       }
     });
