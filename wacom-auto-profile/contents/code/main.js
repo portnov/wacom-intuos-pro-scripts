@@ -1,5 +1,5 @@
 var profiles = {
-    'Krita': 'Krita',
+    'krita': 'Krita',
     'gimp': 'Gimp'
 };
 
@@ -42,6 +42,7 @@ function onFocus(client) {
             newProfile = 'Default';
           }
           setTabletProfile(tablet, newProfile);
+          print("Switch to profile: " + newProfile);
       }
     });
 }
