@@ -1,0 +1,22 @@
+Default:
+  - description: Scroll
+    ring_down: button 5
+    ring_up: button 4
+  - description: Page up/down
+    ring_down: key PgDn
+    ring_up: key PgUp
+
+Krita:
+  - description: Brush size
+    ring_down: "key ["
+    ring_up: "key ]"
+  - description: Scroll / Zoom
+    ring_down: button 5
+    ring_up: button 4
+  - description: Switch layers
+    ring_down: key PgDn
+    ring_up: key PgUp
+  - description: Rotate canvas
+    ring_down: "key ctrl ]"
+    ring_up: "key ctrl ["
+
