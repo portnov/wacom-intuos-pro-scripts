@@ -6,6 +6,7 @@ import re
 from glob import glob
 from subprocess import Popen, PIPE, STDOUT
 import yaml
+import argparse
 
 import gobject
 gobject.threads_init()
@@ -42,7 +43,9 @@ def get_mode(path):
 def notify(text):
     if pynotify_available:
         try:
-            pynotify.Notification("Wacom Tablet Ring Mode", text).show()
+            n = pynotify.Notification("Wacom Tablet Ring Mode", text)
+            n.set_timeout(2)
+            n.show()
         except Exception:
             print(text)
     else:
@@ -90,15 +93,19 @@ def get_profile():
         profile = iface.getProfile()
     return str(profile)
 
-def load_config():
-    if len(sys.argv) == 2:
-        config_path = sys.argv[1]
-    else:
-        config_path = os.path.expanduser("~/.config/wacom-ring-modes.yaml")
-    config = yaml.safe_load(open(config_path,'r').read())
+def parse_cmdline():
+    parser = argparse.ArgumentParser(description="Toggle or set Wacom tablet's express ring operation mode.")
+    parser.add_argument('-c', '--config', nargs=1, metavar='FILENAME', help='Use the specified config file')
+    parser.add_argument('--reset', action='store_true', help='Reset ring mode to default for current tablet profile')
+    return parser.parse_args()
+
+def load_config(path=None):
+    if path is None:
+        path = os.path.expanduser("~/.config/wacom-ring-modes.yaml")
+    config = yaml.safe_load(open(path,'r').read())
     return config
 
-def toggle_mode(config):
+def toggle_mode(config, reset=False):
     path = get_control_file_path()
     if not path:
         print("Wacom tablet does not appear to be attached.")
@@ -122,13 +129,18 @@ def toggle_mode(config):
 
     old_mode_idx = get_mode(path)
     old_mode = modes[old_mode_idx].get("description", str(old_mode_idx))
-    new_mode_idx = (old_mode_idx + 1) % nmodes
+    if reset:
+        new_mode_idx = 0
+    else:
+        new_mode_idx = (old_mode_idx + 1) % nmodes
     new_mode = modes[new_mode_idx].get("description", str(new_mode_idx))
     set_mode(path, modes[new_mode_idx], new_mode_idx)
     notify("Mode switched from {} to {}".format(old_mode, new_mode))
 
 if __name__ == "__main__":
 
-    config = load_config()
-    toggle_mode(config)
+    args = parse_cmdline()
+    print(args)
+    config = load_config(args.config)
+    toggle_mode(config, args.reset)
 
