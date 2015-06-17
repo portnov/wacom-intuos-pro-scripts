@@ -62,7 +62,12 @@ getProfile = do
     wacom <- ensureConnection
     io $ getProfile' (wClient wacom) (wKdeVersion wacom)
   where
-    getProfile' dbus KDE4 = kde4getProfile dbus 
+    getProfile' dbus KDE4 = do
+      p <- kde4getProfile dbus 
+      case p of
+        Nothing -> return Nothing
+        Just [] -> return Nothing
+        profile -> return profile
     getProfile' dbus KDE5 = do
       tablets <- getTabletList dbus
       case tablets of
@@ -90,12 +95,15 @@ wacomProfiles :: [(Query Bool, String)] -> (String -> X ()) -> X ()
 wacomProfiles pairs onSwitch = do
     withWindowSet $ \ss -> do
       whenJust (W.peek ss) $ \window -> do
-        oldProfile <- getProfile
-        newProfile <- selectProfile pairs window
-        let newProfile' = fromMaybe "Default" newProfile
-        when (oldProfile /= Just newProfile') $ do
-          setProfile newProfile'
-          onSwitch newProfile'
+        op <- getProfile
+        case op of
+          Nothing -> return ()
+          Just oldProfile -> do
+            newProfile <- selectProfile pairs window
+            let newProfile' = fromMaybe "Default" newProfile
+            when (oldProfile /= newProfile') $ do
+              setProfile newProfile'
+              onSwitch newProfile'
   where
     selectProfile [] _ = return Nothing
     selectProfile ((qry, profile):ps) w = do
@@ -103,5 +111,4 @@ wacomProfiles pairs onSwitch = do
       if matched
         then return (Just profile)
         else selectProfile ps w
-    selectProfile x _ = error $ "Unexpected: " ++ show (length x)
 
