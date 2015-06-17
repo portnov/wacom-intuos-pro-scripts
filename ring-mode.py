@@ -45,7 +45,10 @@ def set_mode(path, mode):
 
 def notify(text):
     if pynotify_available:
-        pynotify.Notification("Wacom Tablet Ring Mode", text).show()
+        try:
+            pynotify.Notification("Wacom Tablet Ring Mode", text).show()
+        except Exception:
+            print(text)
     else:
         print(text)
 
