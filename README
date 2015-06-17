@@ -1,44 +1,51 @@
 Wacom Intuos Pro managing scripts
 
-This is a set of scripts to set up and customize Wacom Intuos Pro tablets under Linux/X11/udev.
-These scripts work for my Wacom Intuos Pro M tablet. They can require some modifications to work
-with other similar models.
+This is a set of scripts to set up and customize Wacom Intuos Pro tablets under
+Linux/X11/udev.  These scripts work for my Wacom Intuos Pro M tablet. They can
+require some modifications to work with other similar models.
 
 Features:
 
-* Interaction with KDE's (version 4 or 5) systemsettings module, which allows you to set up
-  several tablet profiles. Each profile contains full set of bindings of tablet's "express buttons"
-  and "express ring" to mouse or keyboard actions.
-* Automatic switching of tablet profile depending on focused window. For example, you can 
-  automatically switch to Krita's profile when Krita is active. Two implementations are provided
-  for this feature: one for KWin window manager and one for XMonad window manager.
-* Support of Intuos Pro's feature of having up to 4 modes of "express ring" operations.
-  LEDs on the tablet are switched accordingly to selected mode. Two implementations are provided
-  for this feature: one simple implementation as Shell scripts, and one more advanced implementation
-  as Python script.
+* Interaction with KDE's (version 4 or 5) systemsettings module, which allows
+  you to set up several tablet profiles. Each profile contains full set of
+  bindings of tablet's "express buttons" and "express ring" to mouse or
+  keyboard actions.
+* Automatic switching of tablet profile depending on focused window. For
+  example, you can automatically switch to Krita's profile when Krita is
+  active. Two implementations are provided for this feature: one for KWin
+  window manager and one for XMonad window manager.
+* Support of Intuos Pro's feature of having up to 4 modes of "express ring"
+  operations.  LEDs on the tablet are switched accordingly to selected mode.
+  Two implementations are provided for this feature: one simple implementation
+  as Shell scripts, and one more advanced implementation as Python script.
 
 The set includes:
 
 * udev directory:
-  * 99-local.rules - Udev rules file, which runs wacom-setup.sh script when the tablet is attached.
-    Note that for models other than Intuos Pro M, you will need to change idProduct parameter.
-  * wacom-setup.sh - Shell script which enables unpriviledged-user write access to the file under
-    /sys/bus/usb/ hierarchy, which is responsible for toggling LEDs on the tablet (near the ring).
-* kde5/ directory - KWin script to automatically switch tablet profiles when particular applications
-  are focused. This kwin script works only with KDE 5.
-* xmonad/ directory - XMonad module, which does the same as KWin script mentioned above. But
-  this module works with KDE 4 and KDE 5.
+  * 99-local.rules - Udev rules file, which runs wacom-setup.sh script when the
+    tablet is attached.  Note that for models other than Intuos Pro M, you will
+    need to change idProduct parameter.
+  * wacom-setup.sh - Shell script which enables unpriviledged-user write access
+    to the file under /sys/bus/usb/ hierarchy, which is responsible for
+    toggling LEDs on the tablet (near the ring).
+* kde5/ directory - KWin script to automatically switch tablet profiles when
+  particular applications are focused. This kwin script works only with KDE 5.
+* xmonad/ directory - XMonad module, which does the same as KWin script
+  mentioned above. But this module works with KDE 4 and KDE 5.
 * python/ directory:
-  * ring-mode.py - Python script which toggles tablet ring mode: 0 -> 1 -> 2 -> 3 -> 0 ... 
-    This script uses can manage separate set of ring modes for each of tablet profiles.
-  * wacom-ring-modes.yaml - example of config file for ring-mode.py. To be put to 
-    ~/.config/wacom-ring-modes.yaml.
+  * ring-mode.py - Python script which toggles tablet ring mode: 0 -> 1 -> 2 ->
+    3 -> 0 ...  This script uses can manage separate set of ring modes for each
+    of tablet profiles.
+  * wacom-ring-modes.yaml - example of config file for ring-mode.py. To be put
+    to ~/.config/wacom-ring-modes.yaml.
 * shell/ directory:
-  * wacom-switch-mode.sh - Shell script which toggles ring mode: 0 -> 1 -> 2 -> 3 -> 0 ...
-    This script just toggles LED on the tablet and runs the next script.
-  * wacom-ring-mode.sh - Shell scripts which assigns actions to tablet ring touches,
-    according to selected mode. This script can switch only between 4 predefined modes
-    (bindings are hardcoded in the script). This script does not care of tablet profile
-    currently selected.
-* install.sh - sample script that installs files described above to their desired locations.
+  * wacom-switch-mode.sh - Shell script which toggles ring mode: 0 -> 1 -> 2 ->
+    3 -> 0 ...  This script just toggles LED on the tablet and runs the next
+    script.
+  * wacom-ring-mode.sh - Shell scripts which assigns actions to tablet ring
+    touches, according to selected mode. This script can switch only between 4
+    predefined modes (bindings are hardcoded in the script). This script does
+    not care of tablet profile currently selected.
+* install.sh - sample script that installs files described above to their
+  desired locations.
 
