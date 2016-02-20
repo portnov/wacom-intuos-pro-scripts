@@ -22,34 +22,89 @@ import System.Wacom.Config
 
 
 -- | Detect tablet devices by using xsetwacom --list
-detectAtStartup :: IO (Maybe TabletDevice)
-detectAtStartup = do
-    out <- readProcess "xsetwacom" ["--list"] ""
-    if null out
+-- detectAtStartup :: IO (Maybe TabletDevice)
+-- detectAtStartup = do
+--     out <- readProcess "xsetwacom" ["--list"] ""
+--     if null out
+--       then return Nothing
+--       else do
+--            let ls = lines out
+--                names = map trim $ map (takeWhile (/= '\t')) ls
+--                stylus = pick "stylus" names
+--                pad    = pick "pad" names
+--                touch  = pick "touch" names
+--                dev = TabletDevice stylus pad touch
+--            return $ Just dev
+--   where
+--     pick _ [] = Nothing
+--     pick suffix (name : names)
+--       | suffix `isSuffixOf` name = Just $ dropLastWord name
+--       | otherwise = pick suffix names
+
+detectAtStartup :: UDev -> IO (Maybe TabletDevice)
+detectAtStartup udev = do
+    list <- initEnumeration
+    deviceNames <- enumerateDevices list
+    let wacomDevices = filter isWacom $ map fromBS deviceNames
+    if null wacomDevices
       then return Nothing
       else do
-           let ls = lines out
-               names = map trim $ map (takeWhile (/= '\t')) ls
+           let names = map trim wacomDevices
                stylus = pick "stylus" names
                pad    = pick "pad" names
                touch  = pick "touch" names
                dev = TabletDevice stylus pad touch
            return $ Just dev
   where
+    initEnumeration = do 
+      enum <- newEnumerate udev
+      putStrLn "enum"
+      addMatchSubsystem enum "input"
+      putStrLn "addMatch"
+      scanDevices enum
+      putStrLn "scan"
+      list <- getListEntry enum
+      return list
+
+    enumerateDevices list = iter list
+
+    iter (Just list) = do
+      path <- getName list
+      dev <- newFromSysPath udev path
+      mbName <- getPropertyValue dev "NAME"
+      x <- getNext list
+      rest <- iter x
+      case mbName of
+        Nothing -> return rest
+        Just new -> return (new : rest)
+    iter Nothing = do
+      putStrLn "End."
+      return []
+
     pick _ [] = Nothing
     pick suffix (name : names)
-      | suffix `isSuffixOf` name = Just $ dropLastWord name
+      | suffix `isSuffixOf` name = Just name
       | otherwise = pick suffix names
+
+initUdevMonitor :: WacomHandle -> IO ()
+initUdevMonitor wh@(WacomHandle tvar) = do
+    putStrLn "Udev monitor initing..."
+    return ()
+
 
 udevMonitor :: WacomHandle -> IO ()
 udevMonitor wh@(WacomHandle tvar) = withUDev $ \udev -> do
-    mbDev <- detectAtStartup
+    putStrLn "Udev monitor starting..."
+
+    mbDev <- detectAtStartup udev
     case mbDev of
       Just dev -> do
-                  cfg <- modifyMVar tvar $ \st ->
-                             return (st {msDevice = dev}, msConfig st)
-                  onPlug cfg
+                  modifyMVar_ tvar $ \st ->
+                             return st {msDevice = dev}
       _ -> return ()
+
+    st <- readMVar tvar
+    onPlug (msConfig st)
     monitor <- newFromNetlink udev UDevId
     filterAddMatchSubsystemDevtype monitor "input" Nothing
     enableReceiving monitor

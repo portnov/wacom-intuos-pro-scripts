@@ -25,7 +25,7 @@ import qualified XMonad.Wacom as API
 data Wacom =
     Wacom Profiles.WacomHandle
   | NotInited
-  | Inited Config
+  | Inited Config Profiles.WacomHandle
   deriving (Typeable)
 
 instance ExtensionClass Wacom where
@@ -35,21 +35,24 @@ data Internal = Internal
 
 initWacom :: Config -> X ()
 initWacom config = do
-  XS.put $ Inited config
+  wh <- io $ Profiles.newWacomHandle config
+  XS.put $ Inited config wh
+  io $ Daemon.initUdevMonitor wh
+  ensureDaemonRunning
+  return ()
 
 ensureDaemonRunning :: X Wacom
 ensureDaemonRunning = do
   w <- XS.get
   case w of
     NotInited -> fail "ensureDaemonRunning should be called after initWacom!"
-    Inited config -> do
-        wh <- io $ do
-            wh <- Profiles.newWacomHandle config
+    Inited config wh -> do
+        io $ do
             forkIO $ Daemon.udevMonitor wh
             Profiles.setProfile wh "Default"
             Profiles.setRingMode wh 0
             Profiles.setMapArea wh 0
-            return wh
+            return ()
         let wacom = Wacom wh
         XS.put wacom
         return wacom
