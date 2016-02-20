@@ -1,9 +1,12 @@
+import qualified Data.Map as M
+
 import XMonad
 import XMonad.Config.Kde (kde4Config)
 
 import XMonad.Hooks.EwmhDesktops (ewmh)
 import XMonad.Util.Replace
 
+import System.Wacom.Config
 import XMonad.Wacom.Daemon
 import XMonad.Wacom
 
@@ -29,12 +32,35 @@ baseConfig = kde4Config
 baseManageHook = manageHook baseConfig
 baseLogHook = logHook baseConfig
 
+wconfig :: Config
+wconfig =
+  dfltConfig {
+    tMapAreas = ["1920x1200+0+0", "1920x1080+1920+0"],
+    tProfiles = buildProfiles
+                 [Profile "Default" [ringScrolls, ringBrackets] buttons]
+  }
+
+ringScrolls :: RingMode
+ringScrolls = RingMode "Scroll" (Click 5) (Click 4)
+
+ringBrackets :: RingMode
+ringBrackets = RingMode "Brackets" (Key "[") (Key "]")
+
+buttons :: M.Map Int TabletAction
+buttons = M.fromList [
+           (2, Key "ctrl"),
+           (3, Key "shift"),
+           (13, Key "ctrl z"),
+           (12, Key "Delete")
+          ]
+
 main =  do
   replace
   xmonad $ ewmh $ baseConfig {
         focusFollowsMouse  = False,
         modMask            = mod4Mask,
         workspaces         = map show [0..9],
+        startupHook        = initWacom wconfig,
         logHook            = switchTabletProfile
     }
 
