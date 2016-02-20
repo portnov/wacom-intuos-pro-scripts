@@ -4,6 +4,7 @@ import XMonad.Config.Kde (kde4Config)
 import XMonad.Hooks.EwmhDesktops (ewmh)
 import XMonad.Util.Replace
 
+import XMonad.Wacom.Daemon
 import XMonad.Wacom
 
 import Libnotify
@@ -15,10 +16,10 @@ notifySend cat title text = do
 
 switchTabletProfile :: X ()
 switchTabletProfile = 
-    wacomProfiles [(className =? "Krita", "Krita"),
-                   (className =? "gimp", "Gimp")]
+    wacomProfiles Internal
+      [(className =? "Krita", "Krita"),
+       (className =? "gimp", "Gimp")]
       (\profile -> do
-                   spawn "python /usr/local/bin/ring-mode.py --reset"
                    notifySend "Wacom" "Profile changed" ("Tablet profile changed to " ++ profile))
 
 ------------------------------------------------------------------------
