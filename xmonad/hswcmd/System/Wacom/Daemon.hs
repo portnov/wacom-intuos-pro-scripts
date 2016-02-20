@@ -6,9 +6,6 @@ module System.Wacom.Daemon
 import Control.Monad
 
 import Data.List
-import Data.Char
-import qualified Data.ByteString as B
-import qualified Data.Map as M
 
 import Control.Concurrent
 
@@ -16,7 +13,6 @@ import System.UDev hiding (isEmpty)
 import System.Posix.IO.Select
 import System.Posix.IO.Select.Types hiding (Result)
 import System.Process
-import System.IO
 
 import System.Wacom.Types
 import System.Wacom.Internal

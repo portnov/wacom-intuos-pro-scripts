@@ -32,6 +32,7 @@ library
                        System.Wacom.CLI
   other-modules:       System.Wacom.Internal
   other-extensions:    OverloadedStrings
+  ghc-options:         -fwarn-unused-imports
   build-depends:       base >=4.7 && <4.8,
                        containers >=0.5 && <0.6,
                        bytestring >=0.10 && <0.11,

@@ -23,14 +23,12 @@ module System.Wacom.Profiles
 
 import Control.Monad
 import qualified Data.Map as M
-import Data.Maybe
 import Text.Printf
 import System.Process
 
 import Control.Concurrent
 
 import System.Wacom.Types
-import System.Wacom.Internal
 import System.Wacom.Config
 import System.Wacom.Internal
 import qualified System.Wacom.Ring as Ring

@@ -1,15 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-import Control.Monad
-
-import Data.List
-import Data.Char
-import qualified Data.ByteString as B
-import qualified Data.Map as M
-
 import Control.Concurrent
 
-import System.Process
 import System.IO
 
 import System.Wacom.Daemon
