@@ -22,26 +22,7 @@ import System.Wacom.Profiles
 import System.Wacom.Config
 
 
--- | Detect tablet devices by using xsetwacom --list
--- detectAtStartup :: IO (Maybe TabletDevice)
--- detectAtStartup = do
---     out <- readProcess "xsetwacom" ["--list"] ""
---     if null out
---       then return Nothing
---       else do
---            let ls = lines out
---                names = map trim $ map (takeWhile (/= '\t')) ls
---                stylus = pick "stylus" names
---                pad    = pick "pad" names
---                touch  = pick "touch" names
---                dev = TabletDevice stylus pad touch
---            return $ Just dev
---   where
---     pick _ [] = Nothing
---     pick suffix (name : names)
---       | suffix `isSuffixOf` name = Just $ dropLastWord name
---       | otherwise = pick suffix names
-
+-- | Detect tablet devices by using udev
 detectAtStartup :: Config -> UDev -> IO (Maybe TabletDevice)
 detectAtStartup cfg udev = do
     list <- initEnumeration
@@ -86,12 +67,25 @@ detectAtStartup cfg udev = do
       | suffix `isSuffixOf` name = Just name
       | otherwise = pick suffix names
 
+-- | To be called before starting udevMonitor.
 initUdevMonitor :: WacomHandle -> IO ()
 initUdevMonitor wh@(WacomHandle tvar) = do
     putStrLn "Udev monitor initing..."
     return ()
 
-
+-- | UDev device monitor daemon.
+-- To be called in separate thread (by forkIO).
+-- This daemon implements the following functionality:
+--
+--  * Detects attached tablet at startup (via udev).
+--
+--  * Detects tablet plugging while running (via udev).
+--
+--  * Tracks selected settings profile and ring mode.
+--
+--  * Applies selected settings by calling xsetwacom automatically
+--    after tablet is attached.
+--
 udevMonitor :: WacomHandle -> IO ()
 udevMonitor wh@(WacomHandle tvar) = withUDev $ \udev -> do
     putStrLn "Udev monitor starting..."
@@ -182,3 +176,4 @@ udevMonitor wh@(WacomHandle tvar) = withUDev $ \udev -> do
     onUnplug = do
       d <- readMVar tvar
       putStrLn $ "Unplugged " ++ show (msDevice d)
+

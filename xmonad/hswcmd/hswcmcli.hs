@@ -10,6 +10,8 @@ import System.Wacom.Profiles
 
 import Config
 
+-- Simple command-line utility to select tablet profiles
+
 main :: IO ()
 main = do
   hSetBuffering stdout NoBuffering

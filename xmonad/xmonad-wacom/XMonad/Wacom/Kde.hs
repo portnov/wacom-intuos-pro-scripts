@@ -1,4 +1,6 @@
 {-# LANGUAGE TemplateHaskell, ScopedTypeVariables, DeriveDataTypeable, ExistentialQuantification #-}
+-- | This module contains implementation of switching Wacom tablet settings profiles via
+-- KDE4 or KDE5 kcm_wacomtablet systemsettings module (via dbus).
 module XMonad.Wacom.Kde
   (
     KDE (..),
@@ -46,14 +48,18 @@ data Wacom =
    | Unknown
   deriving (Typeable)
 
+-- | Supported KDE versions
 data KdeVersion = KDE4 | KDE5
   deriving (Eq, Show, Typeable)
 
+-- | Dummy type for API implementation
 data KDE = KDE
 
 instance ExtensionClass Wacom where
   initialValue = Unknown
 
+-- | Return existing dbus connection to KDE's daemon
+-- or create new connection
 ensureConnection :: X Wacom
 ensureConnection = do
   w <- XS.get
@@ -67,6 +73,9 @@ ensureConnection = do
                return wacom
     _ -> return w
 
+-- | Return name of current profile.
+-- Returns Nothing if there is no tablet attached
+-- or no profile selected.
 getProfile :: X (Maybe String)
 getProfile = do
     wacom <- ensureConnection
@@ -89,6 +98,7 @@ withProfile fn = do
   mbProfile <- getProfile
   whenJust mbProfile fn
 
+-- | Set profile by name
 setProfile :: String -> X ()
 setProfile profile = do
     wacom <- ensureConnection

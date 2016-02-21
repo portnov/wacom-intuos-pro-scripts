@@ -1,5 +1,7 @@
 {-# LANGUAGE DeriveDataTypeable #-}
-
+-- | This module contains implementation of switching Wacom tablet settings profiles
+-- via xsetwacom command-line utility.
+-- This also contains detection of Wacom tablet devices via udev library.
 module XMonad.Wacom.Daemon
   (
     Internal (..),
@@ -32,8 +34,11 @@ data Wacom =
 instance ExtensionClass Wacom where
   initialValue = NotInited
 
+-- | Dummy data type for API implementation
 data Internal = Internal
 
+-- | Init udev monitor daemon.
+-- This should be run from XMonad startupHook.
 initWacom :: Config -> X ()
 initWacom config = do
   wh <- io $ Profiles.newWacomHandle config
@@ -42,6 +47,8 @@ initWacom config = do
   ensureDaemonRunning
   return ()
 
+-- | Return handle to running daemon
+-- or run new daemon.
 ensureDaemonRunning :: X Wacom
 ensureDaemonRunning = do
   w <- XS.get
@@ -62,6 +69,9 @@ ensureDaemonRunning = do
         return wacom
     _ -> return w
 
+-- | Return name of currently selected profile.
+-- Returns Nothing if there is no tablet attached
+-- or no profile selected.
 getProfile :: X (Maybe String)
 getProfile = do
     w <- ensureDaemonRunning
@@ -77,6 +87,7 @@ getProfile = do
           io $ putStrLn "getProfile should be called after initWacom!"
           return Nothing
 
+-- | Set profile by name
 setProfile :: String -> X ()
 setProfile name = do
     w <- ensureDaemonRunning
@@ -91,6 +102,8 @@ setProfile name = do
         io $ putStrLn "setProfile should be called after initWacom!"
         return ()
 
+-- | Set tablet mapping area by index (numbering from zero).
+-- Areas themselve are defined in tMapAreas field of Config.
 setTabletMapArea :: Int -> X ()
 setTabletMapArea idx = do
     w <- ensureDaemonRunning

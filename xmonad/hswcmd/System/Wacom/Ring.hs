@@ -15,6 +15,7 @@ type ControlFile = FilePath
 
 control_path_mask = "/sys/bus/usb/devices/*/*/wacom_led/status_led0_select"
 
+-- | Check whether file is writeable
 isWritable :: FilePath -> IO Bool
 isWritable path = writable `fmap` getPermissions path
 

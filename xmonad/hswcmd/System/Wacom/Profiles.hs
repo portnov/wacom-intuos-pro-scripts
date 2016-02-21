@@ -36,6 +36,7 @@ import qualified System.Wacom.Ring as Ring
 emptyState :: Config -> MonState
 emptyState cfg = MonState noDevice cfg Nothing Nothing Nothing Nothing
 
+-- | Create new handle to communicate with daemon.
 newWacomHandle :: Config -> IO WacomHandle
 newWacomHandle cfg = do
   tvar <- newMVar $ emptyState cfg
@@ -74,6 +75,7 @@ renderMapArea td area =
     Just stylus ->
       [printf "\"%s stylus\" MapToOutput %s" stylus area]
 
+-- | Run xsetwacom to apply selected profile
 runProfile :: TabletDevice -> Config -> Maybe Profile -> Maybe RingMode -> IO ()
 runProfile td cfg mbProfile mbMode = do
   let rmode = case mbMode of
@@ -87,6 +89,7 @@ runProfile td cfg mbProfile mbMode = do
     rmode ++
     prof
 
+-- | Run xsetwacom command with specified arguments
 xsetwacom :: [String] -> IO ()
 xsetwacom cmds = do
   forM_ cmds $ \cmd -> do
@@ -94,6 +97,7 @@ xsetwacom cmds = do
     putStrLn command
     spawnCommand command
 
+-- | Set profile by name
 setProfile :: WacomHandle -> String -> IO (Result String)
 setProfile (WacomHandle tvar) profileName = do
   st <- readMVar tvar
@@ -108,6 +112,7 @@ setProfile (WacomHandle tvar) profileName = do
         modifyMVar_ tvar $ \st -> return $ st {msProfile = Just profile}
         return $ Right profileName
 
+-- | Set ring mode by index
 setRingMode :: WacomHandle -> Int -> IO (Result String)
 setRingMode (WacomHandle tvar) idx = do
   st <- readMVar tvar
@@ -127,6 +132,7 @@ setRingMode (WacomHandle tvar) idx = do
              return $ Right $ show idx
         else return $ Left $ "Invalid ring mode index"
 
+-- | Toggle ring mode: 0 -> 1 -> 2 -> 3 -> 0...
 toggleRingMode :: WacomHandle -> IO (Result String)
 toggleRingMode wh@(WacomHandle tvar) = do
   st <- readMVar tvar
@@ -141,6 +147,7 @@ toggleRingMode wh@(WacomHandle tvar) = do
               idx' = (idx + 1) `mod` n
           setRingMode wh idx'
 
+-- | Obtain current ring mode index
 getRingMode :: WacomHandle -> IO (Result String)
 getRingMode (WacomHandle tvar) = do
   st <- readMVar tvar
@@ -148,6 +155,7 @@ getRingMode (WacomHandle tvar) = do
     Nothing -> return $ Left "No ring mode"
     Just rmode -> return $ Right $ show rmode
 
+-- | Sync ring mode used by daemon with the mode indicated by tablet itself
 syncRingMode :: WacomHandle -> IO (Result String)
 syncRingMode wh@(WacomHandle tvar) = do
   st <- readMVar tvar
@@ -157,6 +165,7 @@ syncRingMode wh@(WacomHandle tvar) = do
       idx <- Ring.readMode file
       setRingMode wh idx
 
+-- | Obtain currently selected profile name
 getProfileName :: WacomHandle -> IO (Result String)
 getProfileName (WacomHandle tvar) = do
   st <- readMVar tvar
@@ -164,6 +173,7 @@ getProfileName (WacomHandle tvar) = do
     Nothing -> return $ Left "No current profile"
     Just profile -> return $ Right $ pName profile
 
+-- | Return path of ring control file
 initRingControlFile :: WacomHandle -> IO (Result String)
 initRingControlFile (WacomHandle tvar) = do
   r <- Ring.getControlFile
@@ -172,6 +182,7 @@ initRingControlFile (WacomHandle tvar) = do
     Nothing -> return $ Left "No ring control file"
     Just file -> return $ Right file
 
+-- | Set tablet mapping area by index
 setMapArea :: WacomHandle -> Int -> IO (Result String)
 setMapArea (WacomHandle tvar) idx = do
   st <- readMVar tvar
@@ -188,6 +199,7 @@ setMapArea (WacomHandle tvar) idx = do
              return $ Right area
         else return $ Left "Invalid map area index"
 
+-- | Return currenly selected mapping area
 getMapArea :: WacomHandle -> IO (Result String)
 getMapArea (WacomHandle tvar) = do
   st <- readMVar tvar

@@ -4,17 +4,19 @@ module System.Wacom.CLI where
 import System.Wacom.Types
 import System.Wacom.Profiles
 
+-- | Supported commands
 data Command =
-    Quit
-  | SetProfile String
-  | GetCurrentProfile
-  | SetRingMode Int
-  | ToggleRingMode
-  | GetRingMode
-  | Map Int
-  | GetMap
+    Quit              -- ^ quit
+  | SetProfile String -- ^ set name
+  | GetCurrentProfile -- ^ get
+  | SetRingMode Int   -- ^ ring 1
+  | ToggleRingMode    -- ^ ring +
+  | GetRingMode       -- ^ ring
+  | Map Int           -- ^ map 0
+  | GetMap            -- ^ map
   deriving (Eq, Show)
 
+-- | Implementation of command-line utility to control the daemon.
 client :: WacomHandle -> IO ()
 client wh = do
     cmd <- readCommand

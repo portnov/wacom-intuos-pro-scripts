@@ -15,6 +15,7 @@ trim = \xs -> rtrim $ ltrim xs
                  then rtrim $ init xs
                  else xs
 
+-- | Trim double quotes from right and left
 trimQuotes :: String -> String
 trimQuotes [] = []
 trimQuotes ('"' : xs) = rtrim xs
