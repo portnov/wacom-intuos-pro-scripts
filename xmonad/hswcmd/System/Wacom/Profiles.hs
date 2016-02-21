@@ -103,6 +103,7 @@ setProfile (WacomHandle tvar) profileName = do
   case lookup profileName (tProfiles cfg) of
     Nothing -> return $ Left $ "Unknown profile " ++ profileName
     Just profile -> do
+        putStrLn $ "Setting profile: " ++ profileName
         runProfile td cfg (Just profile) (snd `fmap` mbMode)
         modifyMVar_ tvar $ \st -> return $ st {msProfile = Just profile}
         return $ Right profileName

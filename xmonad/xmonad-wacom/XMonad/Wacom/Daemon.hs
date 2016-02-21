@@ -5,7 +5,8 @@ module XMonad.Wacom.Daemon
     Internal (..),
     initWacom,
     getProfile,
-    setProfile
+    setProfile,
+    setTabletMapArea
   )
   where
 
@@ -45,13 +46,16 @@ ensureDaemonRunning :: X Wacom
 ensureDaemonRunning = do
   w <- XS.get
   case w of
-    NotInited -> fail "ensureDaemonRunning should be called after initWacom!"
+    NotInited -> return NotInited 
     Inited config wh -> do
         io $ do
             forkIO $ Daemon.udevMonitor wh
             Profiles.setProfile wh "Default"
             Profiles.setRingMode wh 0
-            Profiles.setMapArea wh 0
+            r <- Profiles.setMapArea wh 0
+            case r of
+              Left err -> putStrLn err
+              _ -> return ()
             return ()
         let wacom = Wacom wh
         XS.put wacom
@@ -60,17 +64,43 @@ ensureDaemonRunning = do
 
 getProfile :: X (Maybe String)
 getProfile = do
-    Wacom wh <- ensureDaemonRunning
-    r <- io $ Profiles.getProfileName wh
-    case r of
-      Left _ -> return Nothing
-      Right name -> return (Just name)
+    w <- ensureDaemonRunning
+    case w of
+      Wacom wh -> do
+        r <- io $ Profiles.getProfileName wh
+        case r of
+          Left err -> do
+            io $ putStrLn err
+            return Nothing
+          Right name -> return (Just name)
+      _ -> do
+          io $ putStrLn "getProfile should be called after initWacom!"
+          return Nothing
 
 setProfile :: String -> X ()
 setProfile name = do
-    Wacom wh <- ensureDaemonRunning
-    io $ Profiles.setProfile wh name
-    return ()
+    w <- ensureDaemonRunning
+    case w of
+      Wacom wh -> do
+        r <- io $ Profiles.setProfile wh name
+        case r of
+          Left err -> io $ putStrLn err
+          _ -> return ()
+        return ()
+      _ -> do
+        io $ putStrLn "setProfile should be called after initWacom!"
+        return ()
+
+setTabletMapArea :: Int -> X ()
+setTabletMapArea idx = do
+    w <- ensureDaemonRunning
+    case w of
+      Wacom wh -> do
+        r <- io $ Profiles.setMapArea wh idx
+        case r of
+          Left err -> io $ putStrLn err
+          Right _ -> return ()
+      _ -> io $ putStrLn "setTabletMapArea should be called after initWacom!"
 
 instance API.ProfileApi Internal where
   getProfile _ = getProfile

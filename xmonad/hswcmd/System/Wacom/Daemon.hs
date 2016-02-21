@@ -6,6 +6,7 @@ module System.Wacom.Daemon
 import Control.Monad
 
 import Data.List
+import qualified Data.ByteString as B
 
 import Control.Concurrent
 
@@ -41,28 +42,25 @@ import System.Wacom.Config
 --       | suffix `isSuffixOf` name = Just $ dropLastWord name
 --       | otherwise = pick suffix names
 
-detectAtStartup :: UDev -> IO (Maybe TabletDevice)
-detectAtStartup udev = do
+detectAtStartup :: Config -> UDev -> IO (Maybe TabletDevice)
+detectAtStartup cfg udev = do
     list <- initEnumeration
     deviceNames <- enumerateDevices list
     let wacomDevices = filter isWacom $ map fromBS deviceNames
     if null wacomDevices
       then return Nothing
       else do
-           let names = map trim wacomDevices
-               stylus = pick "stylus" names
-               pad    = pick "pad" names
-               touch  = pick "touch" names
+           let names = map (trim . trimQuotes) wacomDevices
+               stylus = pick (tStylusKey cfg) names
+               pad    = pick (tPadKey cfg) names
+               touch  = pick (tTouchKey cfg) names
                dev = TabletDevice stylus pad touch
            return $ Just dev
   where
     initEnumeration = do 
       enum <- newEnumerate udev
-      putStrLn "enum"
       addMatchSubsystem enum "input"
-      putStrLn "addMatch"
       scanDevices enum
-      putStrLn "scan"
       list <- getListEntry enum
       return list
 
@@ -76,7 +74,9 @@ detectAtStartup udev = do
       rest <- iter x
       case mbName of
         Nothing -> return rest
-        Just new -> return (new : rest)
+        Just new -> do
+            B.putStrLn $ "Device: " `B.append` new
+            return (new : rest)
     iter Nothing = do
       putStrLn "End."
       return []
@@ -96,7 +96,9 @@ udevMonitor :: WacomHandle -> IO ()
 udevMonitor wh@(WacomHandle tvar) = withUDev $ \udev -> do
     putStrLn "Udev monitor starting..."
 
-    mbDev <- detectAtStartup udev
+    st <- readMVar tvar
+    let cfg = msConfig st
+    mbDev <- detectAtStartup cfg udev
     case mbDev of
       Just dev -> do
                   modifyMVar_ tvar $ \st ->
