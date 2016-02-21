@@ -13,14 +13,12 @@ import Control.Concurrent
 import System.UDev hiding (isEmpty)
 import System.Posix.IO.Select
 import System.Posix.IO.Select.Types hiding (Result)
-import System.Process
 
 import System.Wacom.Types
 import System.Wacom.Internal
 import System.Wacom.Util
 import System.Wacom.Profiles
 import System.Wacom.Config
-
 
 -- | Detect tablet devices by using udev
 detectAtStartup :: Config -> UDev -> IO (Maybe TabletDevice)

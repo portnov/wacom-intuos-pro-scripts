@@ -9,6 +9,7 @@ module System.Wacom.Profiles
     setRingMode,
     toggleRingMode,
     getRingMode,
+    getRingModeName,
     syncRingMode,
     initRingControlFile,
     setMapArea,
@@ -153,7 +154,15 @@ getRingMode (WacomHandle tvar) = do
   st <- readMVar tvar
   case msRingMode st of
     Nothing -> return $ Left "No ring mode"
-    Just rmode -> return $ Right $ show rmode
+    Just rmode -> return $ Right $ show $ fst rmode
+
+-- | Obtain current ring mode name
+getRingModeName :: WacomHandle -> IO (Result String)
+getRingModeName (WacomHandle tvar) = do
+  st <- readMVar tvar
+  case msRingMode st of
+    Nothing -> return $ Left "No ring mode"
+    Just rmode -> return $ Right $ rName $ snd rmode
 
 -- | Sync ring mode used by daemon with the mode indicated by tablet itself
 syncRingMode :: WacomHandle -> IO (Result String)

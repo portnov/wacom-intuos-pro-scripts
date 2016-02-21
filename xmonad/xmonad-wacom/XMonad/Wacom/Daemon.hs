@@ -8,6 +8,7 @@ module XMonad.Wacom.Daemon
     initWacom,
     getProfile,
     setProfile,
+    toggleRingMode,
     setTabletMapArea
   )
   where
@@ -26,7 +27,7 @@ import qualified System.Wacom.Profiles as Profiles
 import qualified XMonad.Wacom as API
 
 data Wacom =
-    Wacom Profiles.WacomHandle
+    Wacom Config Profiles.WacomHandle
   | NotInited
   | Inited Config Profiles.WacomHandle
   deriving (Typeable)
@@ -64,7 +65,7 @@ ensureDaemonRunning = do
               Left err -> putStrLn err
               _ -> return ()
             return ()
-        let wacom = Wacom wh
+        let wacom = Wacom config wh
         XS.put wacom
         return wacom
     _ -> return w
@@ -76,7 +77,7 @@ getProfile :: X (Maybe String)
 getProfile = do
     w <- ensureDaemonRunning
     case w of
-      Wacom wh -> do
+      Wacom _ wh -> do
         r <- io $ Profiles.getProfileName wh
         case r of
           Left err -> do
@@ -92,7 +93,7 @@ setProfile :: String -> X ()
 setProfile name = do
     w <- ensureDaemonRunning
     case w of
-      Wacom wh -> do
+      Wacom _ wh -> do
         r <- io $ Profiles.setProfile wh name
         case r of
           Left err -> io $ putStrLn err
@@ -108,12 +109,27 @@ setTabletMapArea :: Int -> X ()
 setTabletMapArea idx = do
     w <- ensureDaemonRunning
     case w of
-      Wacom wh -> do
+      Wacom _ wh -> do
         r <- io $ Profiles.setMapArea wh idx
         case r of
           Left err -> io $ putStrLn err
           Right _ -> return ()
       _ -> io $ putStrLn "setTabletMapArea should be called after initWacom!"
+
+toggleRingMode :: (String -> X ()) -> X ()
+toggleRingMode onToggle = do
+    w <- ensureDaemonRunning
+    case w of
+      Wacom cfg wh -> do
+        r <- io $ Profiles.toggleRingMode wh
+        case r of
+          Left err -> io $ putStrLn err
+          Right s -> do
+              m <- io $ Profiles.getRingModeName wh
+              case m of
+                Right mode -> onToggle mode
+                Left err -> io $ putStrLn err
+      _ -> io $ putStrLn "toggleRingMode should be called after initWacom!"
 
 instance API.ProfileApi Internal where
   getProfile _ = getProfile
