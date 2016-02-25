@@ -100,7 +100,7 @@ xsetwacom cmds = do
 
 -- | Set profile by name
 setProfile :: WacomHandle -> String -> IO (Result String)
-setProfile (WacomHandle tvar) profileName = do
+setProfile wh@(WacomHandle tvar) profileName = do
   st <- readMVar tvar
   let cfg = msConfig st
       mbMode = msRingMode st
@@ -111,6 +111,7 @@ setProfile (WacomHandle tvar) profileName = do
         putStrLn $ "Setting profile: " ++ profileName
         runProfile td cfg (Just profile) (snd `fmap` mbMode)
         modifyMVar_ tvar $ \st -> return $ st {msProfile = Just profile}
+        setRingMode wh 0
         return $ Right profileName
 
 -- | Set ring mode by index
