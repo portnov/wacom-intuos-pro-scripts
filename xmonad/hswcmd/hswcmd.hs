@@ -21,26 +21,27 @@ import System.Wacom.Profiles
 import System.Wacom.X11
 import System.Wacom.Matching
 
-import Config
+-- matchConfig :: Matchers
+-- matchConfig =
+--   [(ifClass "krita", "Krita"),
+--    (ifClass "Gimp", "Gimp"),
+--    (ifClass "Blender", "Blender")
+--   ]
 
-matchConfig :: Matchers
-matchConfig =
-  [(ifClass "krita", "Krita"),
-   (ifClass "Gimp", "Gimp"),
-   (ifClass "Blender", "Blender")
-  ]
-
-onCurrentWindowChange :: WacomHandle -> WindowInfo -> IO ()
-onCurrentWindowChange wh wi = do
+onCurrentWindowChange :: WacomHandle -> Config -> WindowInfo -> IO ()
+onCurrentWindowChange wh cfg wi = do
     print wi
     rOld <- getProfileName wh
-    let newProfile = selectProfile matchConfig wi
-    putStrLn $ "Selecting profile: " ++ newProfile
+    let newProfile = selectProfile (mcMatching cfg) wi
     case rOld of
+      Left err -> putStrLn $ "Cant get old profile: " ++ err
       Right old -> do
         putStrLn $ "Old profile: " ++ old
         when (newProfile /= old) $ do
-               setProfile wh newProfile
+               r <- setProfile wh newProfile
+               case r of
+                 Right p -> putStrLn $ "Selecting profile: " ++ p
+                 Left err -> putStrLn $ "Error: " ++ err
                return ()
 
 getConfigFile :: IO FilePath
@@ -50,16 +51,16 @@ getConfigFile = do
 
 main :: IO ()
 main = do
-  wh <- newWacomHandle config
-  forkIO $ udevMonitor wh
-  setProfile wh "Default"
-  setRingMode wh 0
-  print =<< setMapArea wh 0
-
   ecfg <- readConfig =<< getConfigFile
   cfg <- case ecfg of
            Left err -> fail $ show err
            Right cfg -> return cfg
+
+  wh <- newWacomHandle (mcProfilesConfig cfg)
+  forkIO $ udevMonitor wh
+  setProfile wh "Default"
+  setRingMode wh 0
+  print =<< setMapArea wh 0
 
   withDisplay "" $ \dpy -> do
     let rootw = defaultRootWindow dpy
@@ -89,7 +90,7 @@ main = do
               Just "_NET_ACTIVE_WINDOW" -> do
                 mbWindow <- getWindowInfo dpy ev_atom ev_window
                 case mbWindow of
-                  Just wi -> onCurrentWindowChange wh wi
+                  Just wi -> onCurrentWindowChange wh cfg wi
                   Nothing -> return ()
               _ -> return ()
           KeyEvent {..} -> do
