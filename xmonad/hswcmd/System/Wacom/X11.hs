@@ -8,13 +8,11 @@ module System.Wacom.X11
     parseShortcut
   ) where
 
-import Control.Monad
 import Control.Exception as E
 import Data.Bits
 
 import Graphics.X11
 import Graphics.X11.Xlib.Extras
-import Graphics.X11.Xlib.Atom
 
 import System.Wacom.Matching
 

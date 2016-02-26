@@ -5,7 +5,6 @@ module System.Wacom.Matching where
 import Control.Applicative
 import Data.Aeson.Types (typeMismatch)
 import Data.Yaml
-import qualified Data.Text as T
 import qualified Data.Vector as V
 
 import qualified System.Wacom.Config as PC
