@@ -1,0 +1,19 @@
+mapping-areas: ["1920x1200+0+0", "1920x1080+1920+0"]
+ring-toggle-key: ctrl alt shift F12
+profiles:
+  - name: Default
+    ring: 
+      - name: Scroll
+        up: button 5
+        down: button 4
+    buttons:
+      1: key ctrl alt shift F12
+      2: key ctrl
+      3: key shift
+      4: key ctrl z
+      12: key Delete
+matching:
+  - class: "krita"
+    profile: "Krita"
+  - class: "Blender"
+    profile: "Blender"
