@@ -7,6 +7,7 @@ import Control.Monad
 
 import Data.List
 import qualified Data.ByteString as B
+import qualified Data.ByteString.Char8 as C8
 
 import Control.Concurrent
 
@@ -54,7 +55,7 @@ detectAtStartup cfg udev = do
       case mbName of
         Nothing -> return rest
         Just new -> do
-            B.putStrLn $ "Device: " `B.append` new
+            C8.putStrLn $ "Device: " `B.append` new
             return (new : rest)
     iter Nothing = do
       putStrLn "End."
