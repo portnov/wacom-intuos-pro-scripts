@@ -1,3 +1,4 @@
+{-# LANGUAGE OverloadedStrings, FlexibleInstances #-}
 
 module System.Wacom.Config
   (
@@ -11,7 +12,13 @@ module System.Wacom.Config
   )
   where
 
+import Control.Applicative
+import Data.Char (isDigit)
 import qualified Data.Map as M
+import qualified Data.HashMap.Strict as H
+import Data.Aeson.Types (typeMismatch)
+import Data.Yaml
+import qualified Data.Text as T
 
 -- | Tablet configuration
 data Config = Config {
@@ -25,6 +32,17 @@ data Config = Config {
   }
   deriving (Show)
 
+instance FromJSON Config where
+  parseJSON (Object v) =
+    Config
+      <$> v .:? "stylus-device-key" .!= "Pen"
+      <*> v .:? "pad-device-key" .!= "Pad"
+      <*> v .:? "touch-device-key" .!= "Touch"
+      <*> v .:? "enable-touch" .!= False
+      <*> v .:? "mapping-areas" .!= []
+      <*> (buildProfiles <$> (v .: "profiles"))
+  parseJSON invalid = typeMismatch "Config" invalid
+
 type Area = String
 
 -- | Tablet settings profile
@@ -35,6 +53,29 @@ data Profile = Profile {
   }
   deriving (Show)
 
+instance FromJSON (M.Map Int TabletAction) where
+  parseJSON (Object v) = do
+      let lst = H.toList v
+      lst' <- mapM go lst
+      return $ M.fromList lst'
+    where
+      go (key,val) = do
+        let keyStr = T.unpack key
+        keyInt <- if all isDigit keyStr
+                    then return $ read keyStr
+                    else fail $ "Invalid button number " ++ keyStr
+        val' <- parseJSON val
+        return (keyInt, val')
+          
+
+instance FromJSON Profile where
+  parseJSON (Object v) =
+    Profile
+      <$> v .: "name"
+      <*> v .:? "ring" .!= []
+      <*> v .:? "buttons" .!= M.empty
+  parseJSON invalid = typeMismatch "Profile" invalid
+
 -- | Intuos Pro ring mode
 data RingMode = RingMode {
       rName :: String           -- ^ Mode name
@@ -43,11 +84,35 @@ data RingMode = RingMode {
   }
   deriving (Show)
 
+instance FromJSON RingMode where
+  parseJSON (Object v) =
+    RingMode
+      <$> v .: "name"
+      <*> v .: "up"
+      <*> v .: "down"
+  parseJSON invalid = typeMismatch "RingMode" invalid
+
 -- | Supported actions for binding
 data TabletAction =
     Key String   -- ^ Keyboard shortcut, for example @shift@, @ctrl z@ etc
   | Click Int    -- ^ Mouse button click
   | DblClick Int -- ^ Mouse button double click
+
+instance FromJSON TabletAction where
+  parseJSON (String text) =
+    case words (T.unpack text) of
+      [] -> fail "empty tablet action"
+      ("key":ws) -> return $ Key $ unwords ws
+      ["button", s] ->
+        if all isDigit s
+          then return $ Click $ read s
+          else fail $ "Invalid button number " ++ s
+      ["dblclick", s] ->
+        if all isDigit s
+          then return $ DblClick $ read s
+          else fail $ "Invalid button number " ++ s
+      xs -> fail $ "Invalid tablet action specification: " ++ unwords xs
+  parseJSON invalid = typeMismatch "TabletAction" invalid
 
 instance Show TabletAction where
   show (Key s) = "key " ++ s
@@ -67,4 +132,7 @@ dfltConfig = Config {
 
 buildProfiles :: [Profile] -> [(String, Profile)]
 buildProfiles lst = [(pName p, p) | p <- lst]
+
+readConfig :: FilePath -> IO (Either ParseException Config)
+readConfig path = decodeFileEither path
 
