@@ -48,7 +48,8 @@ library
                        aeson >= 0.10,
                        yaml >= 0.8.15,
                        text >= 1.2.0.0,
-                       X11 >= 1.6.1
+                       X11 >= 1.6.1,
+                       libnotify >= 0.1.1.0
   default-language:    Haskell2010
 
 executable hswchd
@@ -77,6 +78,7 @@ executable hswchd
                        aeson >= 0.10,
                        yaml >= 0.8.15,
                        text >= 1.2.0.0,
-                       X11 >= 1.6.1
+                       X11 >= 1.6.1,
+                       libnotify >= 0.1.1.0
   default-language:    Haskell2010
 

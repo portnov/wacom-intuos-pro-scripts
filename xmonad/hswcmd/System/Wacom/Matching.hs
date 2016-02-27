@@ -43,6 +43,7 @@ instance FromJSON Matchers where
 data Config = Config {
     mcProfilesConfig :: PC.Config,
     mcRingKey :: Maybe String,
+    mcNotify :: Bool,
     mcMatching :: Matchers
   } deriving (Show)
 
@@ -50,8 +51,9 @@ instance FromJSON Config where
   parseJSON val@(Object v) = do
     profilesConfig <- parseJSON val
     ringKey <- v .:? "ring-toggle-key"
+    notify <- v .:? "notify" .!= True
     matching <- v .: "matching"
-    return $ Config profilesConfig ringKey matching
+    return $ Config profilesConfig ringKey notify matching
   parseJSON invalid = typeMismatch "Configuration" invalid
 
 data WindowInfo = WindowInfo {

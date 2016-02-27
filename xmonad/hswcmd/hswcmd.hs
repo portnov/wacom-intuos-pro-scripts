@@ -20,13 +20,7 @@ import System.Wacom.CLI
 import System.Wacom.Profiles
 import System.Wacom.X11
 import System.Wacom.Matching
-
--- matchConfig :: Matchers
--- matchConfig =
---   [(ifClass "krita", "Krita"),
---    (ifClass "Gimp", "Gimp"),
---    (ifClass "Blender", "Blender")
---   ]
+import System.Wacom.Notify
 
 onCurrentWindowChange :: WacomHandle -> Config -> WindowInfo -> IO ()
 onCurrentWindowChange wh cfg wi = do
@@ -40,7 +34,10 @@ onCurrentWindowChange wh cfg wi = do
         when (newProfile /= old) $ do
                r <- setProfile wh newProfile
                case r of
-                 Right p -> putStrLn $ "Selecting profile: " ++ p
+                 Right p -> do
+                     putStrLn $ "Selecting profile: " ++ p
+                     when (mcNotify cfg) $
+                         notify "Tablet profile" $ "New tablet profile selected: " ++ p
                  Left err -> putStrLn $ "Error: " ++ err
                return ()
 
@@ -95,11 +92,16 @@ main = do
               _ -> return ()
           KeyEvent {..} -> do
             when (ev_event_type == keyPress) $ do
-                putStrLn $ "Key: " ++ show ev_keycode
                 r <- toggleRingMode wh
                 case r of
                   Left err -> putStrLn $ "Error: " ++ err
-                  Right res -> putStrLn $ "Ring mode: " ++ res
+                  Right res -> do
+                      putStrLn $ "Ring mode: " ++ res
+                      when (mcNotify cfg) $ do
+                          rm <- getRingModeName wh
+                          case rm of
+                            Left err -> putStrLn $ "Error: " ++ err
+                            Right name -> notify "Ring Mode" $ "New ring mode selected: " ++ name
                 return ()
           _ -> putStrLn $ "Unexpected event: " ++ show ev
 
