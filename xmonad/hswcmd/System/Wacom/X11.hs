@@ -2,19 +2,33 @@
 
 module System.Wacom.X11
   (
+    ModeAction (..),
+    KeyMap,
     getWindowInfo,
     withDisplay,
     getNumlockMask,
-    parseShortcut
+    cleanMask,
+    parseShortcut,
+    grabHotkeys,
+    compileKeyMap
   ) where
 
+import Control.Monad
 import Control.Exception as E
+import qualified Data.Map as M
 import Data.Bits
 
 import Graphics.X11
 import Graphics.X11.Xlib.Extras
 
 import System.Wacom.Matching
+
+data ModeAction =
+    ToggleRingMode
+  | SetMappingArea Int
+  deriving (Eq, Show)
+
+type KeyMap = M.Map (KeyMask, KeySym) ModeAction
 
 getTitle :: Display -> Window -> IO String
 getTitle d w = do
@@ -68,6 +82,11 @@ getNumlockMask dpy = do
                         | (m, kcs) <- ms, kc <- kcs, kc /= 0]
     return $ foldr (.|.) 0 xs 
 
+-- | Strip numlock\/capslock from a mask
+cleanMask :: KeyMask -> KeyMask -> KeyMask
+cleanMask numlock km =
+    (complement (numlock .|. lockMask) .&. km)
+
 -- | Parse X11 KeyMask + KeySym from xsetwacom-style specification.
 --
 -- Supported are strings like @F11@, @ctrl alt z@.
@@ -97,5 +116,45 @@ parseShortcut str = do
     parseMod "ctrl" = Just controlMask 
     parseMod "shift" = Just shiftMask
     parseMod "alt" = Just mod1Mask
+    parseMod "mod1" = Just mod1Mask
+    parseMod "mod2" = Just mod2Mask
+    parseMod "mod3" = Just mod3Mask
+    parseMod "mod4" = Just mod4Mask
+    parseMod "mod5" = Just mod5Mask
     parseMod _ = Nothing
+
+grabHotkey :: Display -> Window -> KeyMask -> String -> IO ()
+grabHotkey dpy rootw numlock keystr = do
+  case parseShortcut keystr of
+    Nothing -> fail $ "Unsupported shortcut: " ++ keystr
+    Just (mod, keysym) -> do
+        putStrLn $ "Grabbing hotkey: " ++ keystr
+        hotkey <- keysymToKeycode dpy keysym
+        -- Grab both mask+key and numlock+mask+key.
+        grabKey dpy hotkey mod rootw True grabModeAsync grabModeAsync
+        grabKey dpy hotkey (mod .|. numlock) rootw True grabModeAsync grabModeAsync
+
+grabHotkeys :: Display -> Window -> KeyMask -> [String] -> IO ()
+grabHotkeys dpy rootw numlock keys = do
+    forM_ keys $ \keystr ->
+        grabHotkey dpy rootw numlock keystr
+
+compileKeyMap :: Display -> KeyMapConfig -> IO KeyMap
+compileKeyMap dpy KeyMapConfig {..} = do
+    ring <- case kmRingMode of
+              Nothing -> return []
+              Just keystr -> do
+                             key <- compile keystr
+                             return [(key, ToggleRingMode)]
+    areas <- do
+             keys <- mapM compile kmMapAreas
+             return [(key, SetMappingArea i) | (i,key) <- zip [0..] keys]
+    return $ M.fromList $ ring ++ areas
+  where
+    compile :: String -> IO (KeyMask, KeySym)
+    compile keystr = do
+      case parseShortcut keystr of
+        Nothing -> fail $ "Unsupported shortcut: " ++ keystr
+        Just (mod, keysym) -> do
+          return (mod, keysym)
 

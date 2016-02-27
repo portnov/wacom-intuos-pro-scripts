@@ -1,6 +1,7 @@
 {-# LANGUAGE RecordWildCards #-}
 
 import Control.Monad
+import qualified Data.Map as M
 import Control.Exception as E
 import Control.Concurrent
 import Foreign
@@ -16,7 +17,6 @@ import System.FilePath
 import System.Environment
 
 import System.Wacom.Daemon
-import System.Wacom.CLI
 import System.Wacom.Profiles
 import System.Wacom.X11
 import System.Wacom.Matching
@@ -41,6 +41,22 @@ onCurrentWindowChange wh cfg wi = do
                  Left err -> putStrLn $ "Error: " ++ err
                return ()
 
+runModeAction :: WacomHandle -> Config -> ModeAction -> IO ()
+runModeAction wh cfg ToggleRingMode = do
+    r <- toggleRingMode wh
+    case r of
+      Left err -> putStrLn $ "Error: " ++ err
+      Right res -> do
+          putStrLn $ "Ring mode: " ++ res
+          when (mcNotify cfg) $ do
+              rm <- getRingModeName wh
+              case rm of
+                Left err -> putStrLn $ "Error: " ++ err
+                Right name -> notify "Ring Mode" $ "New ring mode selected: " ++ name
+runModeAction wh _ (SetMappingArea idx) = do
+    setMapArea wh idx
+    return ()
+
 getConfigFile :: IO FilePath
 getConfigFile = do
   home <- getEnv "HOME"
@@ -57,21 +73,15 @@ main = do
   forkIO $ udevMonitor wh
   setProfile wh "Default"
   setRingMode wh 0
-  print =<< setMapArea wh 0
+  setMapArea wh 0
+
 
   withDisplay "" $ \dpy -> do
     let rootw = defaultRootWindow dpy
-    case mcRingKey cfg of
-      Nothing -> return ()
-      Just keystr -> do
-        case parseShortcut keystr of
-          Nothing -> fail $ "Unsupported shortcut for ring mode toggle: " ++ keystr
-          Just (mod, keysym) -> do
-            hotkey <- keysymToKeycode dpy keysym
-            numlock <- getNumlockMask dpy
-            -- Grab both mask+key and numlock+mask+key.
-            grabKey dpy hotkey mod rootw True grabModeAsync grabModeAsync
-            grabKey dpy hotkey (mod .|. numlock) rootw True grabModeAsync grabModeAsync
+    numlock <- getNumlockMask dpy
+    grabHotkeys dpy rootw numlock $ getHotkeys (mcKeyMap cfg)
+    keymap <- compileKeyMap dpy $ mcKeyMap cfg
+    print keymap
     -- We need only PropertyEvent (toggled when active window is changed)
     -- and KeyEvent (when keyboard key is pressed)
     selectInput dpy rootw (propertyChangeMask .|. keyPressMask)
@@ -91,17 +101,13 @@ main = do
                   Nothing -> return ()
               _ -> return ()
           KeyEvent {..} -> do
+            -- Key pressed
             when (ev_event_type == keyPress) $ do
-                r <- toggleRingMode wh
-                case r of
-                  Left err -> putStrLn $ "Error: " ++ err
-                  Right res -> do
-                      putStrLn $ "Ring mode: " ++ res
-                      when (mcNotify cfg) $ do
-                          rm <- getRingModeName wh
-                          case rm of
-                            Left err -> putStrLn $ "Error: " ++ err
-                            Right name -> notify "Ring Mode" $ "New ring mode selected: " ++ name
+                keysym <- keycodeToKeysym dpy ev_keycode 0
+                let mask = cleanMask numlock ev_state
+                case M.lookup (mask,keysym) keymap of
+                  Nothing -> putStrLn $ "Unknown key " ++ show (mask,keysym)
+                  Just action -> runModeAction wh cfg action
                 return ()
           _ -> putStrLn $ "Unexpected event: " ++ show ev
 

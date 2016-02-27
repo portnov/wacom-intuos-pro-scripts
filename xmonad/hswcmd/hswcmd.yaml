@@ -1,5 +1,9 @@
 mapping-areas: ["1920x1200+0+0", "1920x1080+1920+0"]
-ring-toggle-key: ctrl alt shift F12
+hotkeys:
+  toggle-ring-mode: ctrl alt shift F12
+  mapping-areas:
+    - ctrl shift F1
+    - ctrl shift F2
 profiles:
   - name: Default
     ring: 
@@ -10,8 +14,30 @@ profiles:
       1: key ctrl alt shift F12
       2: key ctrl
       3: key shift
-      4: key ctrl z
       12: key Delete
+      13: key ctrl z
+
+  - name: Blender
+    ring: 
+      - name: Scroll
+        up: button 5
+        down: button 4
+      - name: Brackets
+        up: "key ["
+        down: "key ]"
+      - name: Orbit left/right
+        up: key 4
+        down: key 6
+    buttons:
+      1: key ctrl alt shift F12
+      2: key b
+      3: key shift
+      8: key 7
+      9: key 1
+      10: key 3
+      11: key 5
+      12: key Delete
+      13: key ctrl z
 matching:
   - class: "krita"
     profile: "Krita"

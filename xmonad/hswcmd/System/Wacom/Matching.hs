@@ -1,8 +1,9 @@
-{-# LANGUAGE OverloadedStrings, FlexibleInstances #-}
+{-# LANGUAGE OverloadedStrings, FlexibleInstances, RecordWildCards #-}
 
 module System.Wacom.Matching where
 
 import Control.Applicative
+import qualified Data.Map as M
 import Data.Aeson.Types (typeMismatch)
 import Data.Yaml
 import qualified Data.Vector as V
@@ -40,20 +41,38 @@ instance FromJSON Matchers where
       parseOne invalid = typeMismatch "Matching condition" invalid
   parseJSON invalid = typeMismatch "Matching conditions list" invalid
 
+data KeyMapConfig = KeyMapConfig {
+    kmRingMode :: Maybe String,
+    kmMapAreas :: [String]
+  } deriving (Show)
+
+getHotkeys :: KeyMapConfig -> [String]
+getHotkeys KeyMapConfig {..} =
+  kmMapAreas ++ case kmRingMode of
+                  Nothing -> []
+                  Just key -> [key]
+
+instance FromJSON KeyMapConfig where
+  parseJSON val@(Object v) = do
+      ring <- v .:? "toggle-ring-mode"
+      areas <- v .: "mapping-areas"
+      return $ KeyMapConfig ring areas
+  parseJSON invalid = typeMismatch "Keymap config" invalid
+
 data Config = Config {
     mcProfilesConfig :: PC.Config,
-    mcRingKey :: Maybe String,
     mcNotify :: Bool,
+    mcKeyMap :: KeyMapConfig,
     mcMatching :: Matchers
   } deriving (Show)
 
 instance FromJSON Config where
   parseJSON val@(Object v) = do
     profilesConfig <- parseJSON val
-    ringKey <- v .:? "ring-toggle-key"
     notify <- v .:? "notify" .!= True
+    keys <- v .: "hotkeys"
     matching <- v .: "matching"
-    return $ Config profilesConfig ringKey notify matching
+    return $ Config profilesConfig notify keys matching
   parseJSON invalid = typeMismatch "Configuration" invalid
 
 data WindowInfo = WindowInfo {
