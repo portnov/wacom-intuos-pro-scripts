@@ -55,7 +55,7 @@ detectAtStartup cfg udev = do
       case mbName of
         Nothing -> return rest
         Just new -> do
-            C8.putStrLn $ "Device: " `B.append` new
+            -- C8.putStrLn $ "Device: " `B.append` new
             return (new : rest)
     iter Nothing = do
       putStrLn "End."

@@ -81,7 +81,6 @@ main = do
     numlock <- getNumlockMask dpy
     grabHotkeys dpy rootw numlock $ getHotkeys (mcKeyMap cfg)
     keymap <- compileKeyMap dpy $ mcKeyMap cfg
-    print keymap
     -- We need only PropertyEvent (toggled when active window is changed)
     -- and KeyEvent (when keyboard key is pressed)
     selectInput dpy rootw (propertyChangeMask .|. keyPressMask)
