@@ -1,0 +1,8 @@
+INSTALLATION PROCEDURES
+-----------------------
+
+# apt-get install haskell-platform cabal-install
+# cabal update
+# cabal install
+# cp dist/build/hswchd/hswcmd /usr/local/bin/
+
