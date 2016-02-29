@@ -6,8 +6,6 @@ module System.Wacom.Daemon
 import Control.Monad
 
 import Data.List
-import qualified Data.ByteString as B
-import qualified Data.ByteString.Char8 as C8
 
 import Control.Concurrent
 

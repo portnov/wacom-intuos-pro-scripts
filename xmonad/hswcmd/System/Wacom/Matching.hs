@@ -3,7 +3,6 @@
 module System.Wacom.Matching where
 
 import Control.Applicative
-import qualified Data.Map as M
 import Data.Aeson.Types (typeMismatch)
 import Data.Yaml
 import qualified Data.Vector as V
