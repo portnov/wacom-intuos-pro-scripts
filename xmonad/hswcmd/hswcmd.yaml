@@ -1,15 +1,33 @@
+# Sample configuration file.
+# To be put under ~/.config/hswcmd.yaml.
+#
+# Keyboard shortcuts and mouse actions are specified
+# in xsetwacom format.
+
+# Tablet mapping areas. The first one will be used
+# by default.
 mapping-areas: ["1920x1200+0+0", "1920x1080+1920+0"]
+# Whether to notify you (via libnotify) on tablet
+# profile or ring mode switching.
+notify: true
 hotkeys:
+  # Hotkey to toggle Intuos Pro Express Ring modes.
+  # Optional.
   toggle-ring-mode: ctrl alt shift F12
   mapping-areas:
-    - ctrl shift F1
-    - ctrl shift F2
+    - ctrl shift F1 # To switch to 1st area
+    - ctrl shift F2 # To switch to 2nd area
 profiles:
+  # The profile with `Default' name is always used
+  # by default.
   - name: Default
-    ring: 
+    # Express Ring modes (up to 4)
+    ring:  
       - name: Scroll
         up: button 5
         down: button 4
+    # Tablet (pad) buttons mapping for this profile.
+    # Use xev to detect button numbers.
     buttons:
       1: key ctrl alt shift F12
       2: key ctrl
@@ -38,8 +56,16 @@ profiles:
       11: key 5
       12: key Delete
       13: key ctrl z
+# Rules to match windows with tablet profiles.
+# Each rule can match windows by class (WM_CLASS)
+# and/or title.
+# The `Default' profile will be used if no rule
+# matches for the window.
 matching:
   - class: "krita"
     profile: "Krita"
   - class: "Blender"
     profile: "Blender"
+  - title: "My Graphical App"
+    profile: MyApp
+
