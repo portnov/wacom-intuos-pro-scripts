@@ -7,10 +7,16 @@ synopsis:            Manage Wacom tablet settings profiles, including Intuos Pro
 description:         This package provides a daemon process and a simple API to manage Wacom tablet settings profiles.
                      Each profile is contains set of tablet settings: buttons mapping, touchpad configuration, etc.
                      Modes for Intuos Pro Express Ring are also supported.
+
                      The daemon detects tablet plug/unplug via udev and applies settings via xsetwacom command line
                      utility.
+
                      The API may be used to manage tablet settings from any haskell application, for example, XMonad.
-                     Simple utility to manage tablet settings from command line interface is also provided.
+
+                     The package provides a daemon (hswcmd) which can manage tablet profiles for any lightweight 
+                     desktop environment (without KDE/GNOME). The daemon is configured via YAML config file.
+
+                     Simple utility to manage tablet settings from command line (hswcmcli) interface is also provided.
 homepage:            https://github.com/portnov/wacom-intuos-pro-scripts
 license:             BSD3
 license-file:        LICENSE
@@ -19,7 +25,7 @@ maintainer:          portnov@iportnov.ru
 -- copyright:           
 category:            Desktop
 build-type:          Simple
--- extra-source-files:  
+extra-source-files:  hswcmd.yaml
 cabal-version:       >=1.10
 
 library
