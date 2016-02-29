@@ -1,0 +1,5 @@
+For installation procedures, see INSTALL.
+
+Sample configuration file for hswcmd daemon can be found under hswcmd.yaml.
+
+The configuration file should be located at ~/.config/hswcmd.yaml.
