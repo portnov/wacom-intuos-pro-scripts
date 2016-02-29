@@ -30,8 +30,15 @@ The set includes:
     toggling LEDs on the tablet (near the ring).
 * kde5/ directory - KWin script to automatically switch tablet profiles when
   particular applications are focused. This kwin script works only with KDE 5.
-* xmonad/ directory - XMonad module, which does the same as KWin script
-  mentioned above. But this module works with KDE 4 and KDE 5.
+* xmonad/ directory:
+  * hswcmd - `wacom-daemon' Haskell library & `hswcmd' daemon, which can be used
+    for automatic switching of tablet profiles, ring mode switching. Configured
+    via yaml file. Can be used with lightweight X11 environments (without KDE/
+    GNOME/etc). Uses libudev to detect tablet plugging events.
+  * xmonad-wacom - XMonad module, which can automatically switch tablet profiles
+    either via integration with KDE4/KDE5 systemsettings module via dbus or by
+    using wacom-daemon library (compiling it into xmonad binary). Configured via
+    xmonad config.
 * python/ directory:
   * ring-mode.py - Python script which toggles tablet ring mode: 0 -> 1 -> 2 ->
     3 -> 0 ...  This script uses can manage separate set of ring modes for each
