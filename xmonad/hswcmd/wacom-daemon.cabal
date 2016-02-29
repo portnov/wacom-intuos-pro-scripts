@@ -6,7 +6,7 @@ version:             0.1.0.0
 synopsis:            Manage Wacom tablet settings profiles, including Intuos Pro ring modes
 description:         This package provides a daemon process and a simple API to manage Wacom tablet settings profiles.
                      Each profile is contains set of tablet settings: buttons mapping, touchpad configuration, etc.
-                     Modes for Intuos Pro ring are also supported.
+                     Modes for Intuos Pro Express Ring are also supported.
                      The daemon detects tablet plug/unplug via udev and applies settings via xsetwacom command line
                      utility.
                      The API may be used to manage tablet settings from any haskell application, for example, XMonad.
@@ -28,6 +28,7 @@ library
                        System.Wacom.Ring,
                        System.Wacom.Config,
                        System.Wacom.Daemon,
+                       System.Wacom.Notify,
                        System.Wacom.Types,
                        System.Wacom.CLI,
                        System.Wacom.X11,
@@ -59,6 +60,7 @@ executable hswchd
                      System.Wacom.Ring,
                      System.Wacom.Config,
                      System.Wacom.Daemon,
+                     System.Wacom.Notify,
                      System.Wacom.Types,
                      System.Wacom.CLI,
                      System.Wacom.X11,
@@ -89,6 +91,7 @@ executable hswcmcli
                      System.Wacom.Ring,
                      System.Wacom.Config,
                      System.Wacom.Daemon,
+                     System.Wacom.Notify,
                      System.Wacom.Types,
                      System.Wacom.CLI,
                      System.Wacom.X11,
