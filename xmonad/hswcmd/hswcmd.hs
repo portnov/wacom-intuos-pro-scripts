@@ -16,6 +16,7 @@ import Graphics.X11.Xlib.Atom
 import System.FilePath
 import System.Environment
 
+import System.Wacom.Types
 import System.Wacom.Daemon
 import System.Wacom.Profiles
 import System.Wacom.X11
@@ -62,6 +63,20 @@ getConfigFile = do
   home <- getEnv "HOME"
   return $ home </> ".config" </> "hswcmd.yaml"
 
+onPlug :: Config -> TabletDevice -> IO ()
+onPlug cfg dev =
+  when (mcNotify cfg) $
+    case dStylus dev of
+      Just stylus -> notify "Tablet Attached" $ "Tablet device attached: " ++ stylus
+      Nothing -> return ()
+
+onUnplug :: Config -> TabletDevice -> IO ()
+onUnplug cfg dev =
+  when (mcNotify cfg) $
+    case dStylus dev of
+      Just stylus -> notify "Tablet Removed" $ "Tablet device removed: " ++ stylus
+      Nothing -> return ()
+
 main :: IO ()
 main = do
   ecfg <- readConfig =<< getConfigFile
@@ -74,7 +89,8 @@ main = do
   setProfile wh "Default"
   setRingMode wh 0
   setMapArea wh 0
-
+  setPlugCallback wh (onPlug cfg)
+  setUnplugCallback wh (onUnplug cfg)
 
   withDisplay "" $ \dpy -> do
     let rootw = defaultRootWindow dpy
