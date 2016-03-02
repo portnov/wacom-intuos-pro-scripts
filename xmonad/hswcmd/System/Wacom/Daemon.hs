@@ -163,6 +163,7 @@ udevMonitor wh@(WacomHandle tvar) = withUDev $ \udev -> do
       st <- readMVar tvar
       let dev = msDevice st
       putStrLn $ "Plugged " ++ show dev
+      msOnPlug st dev
       let profile = msProfile st
           rmode = msRingMode st
       initRingControlFile wh
@@ -171,6 +172,7 @@ udevMonitor wh@(WacomHandle tvar) = withUDev $ \udev -> do
 
     onUnplug :: IO ()
     onUnplug = do
-      d <- readMVar tvar
-      putStrLn $ "Unplugged " ++ show (msDevice d)
+      st <- readMVar tvar
+      putStrLn $ "Unplugged " ++ show (msDevice st)
+      msOnUnplug st (msDevice st)
 

@@ -14,6 +14,8 @@ module System.Wacom.Profiles
     initRingControlFile,
     setMapArea,
     getMapArea,
+    setPlugCallback,
+    setUnplugCallback,
 
     emptyState,
 
@@ -35,7 +37,9 @@ import System.Wacom.Internal
 import qualified System.Wacom.Ring as Ring
 
 emptyState :: Config -> MonState
-emptyState cfg = MonState noDevice cfg Nothing Nothing Nothing Nothing
+emptyState cfg = MonState noDevice cfg Nothing Nothing Nothing nothing nothing Nothing
+  where
+    nothing _ = return ()
 
 -- | Create new handle to communicate with daemon.
 newWacomHandle :: Config -> IO WacomHandle
@@ -216,4 +220,12 @@ getMapArea (WacomHandle tvar) = do
   case msArea st of
     Nothing -> return $ Left "No current map area"
     Just area -> return $ Right area
+
+setPlugCallback :: WacomHandle -> (TabletDevice -> IO ()) -> IO ()
+setPlugCallback (WacomHandle tvar) callback = do
+  modifyMVar_ tvar $ \st -> return $ st {msOnPlug = callback}
+
+setUnplugCallback :: WacomHandle -> (TabletDevice -> IO ()) -> IO ()
+setUnplugCallback (WacomHandle tvar) callback = do
+  modifyMVar_ tvar $ \st -> return $ st {msOnUnplug = callback}
 

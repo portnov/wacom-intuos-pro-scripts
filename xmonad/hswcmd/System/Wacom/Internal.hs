@@ -19,9 +19,10 @@ data MonState = MonState {
     , msArea :: Maybe Area                     -- ^ Currently selected mapping area
     , msProfile :: Maybe Profile               -- ^ Currently selected profile
     , msRingMode :: Maybe (Int, RingMode)      -- ^ Currently selected ring mode: index and definition
+    , msOnPlug :: TabletDevice -> IO ()
+    , msOnUnplug :: TabletDevice -> IO ()
     , msRingControl :: Maybe Ring.ControlFile  -- ^ Ring control file
   }
-  deriving (Show)
 
 -- | Abstract data type - handle to communicate with daemon.
 newtype WacomHandle = WacomHandle (MVar MonState)
