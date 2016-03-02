@@ -5,11 +5,13 @@
 module XMonad.Wacom.Daemon
   (
     Internal (..),
+    Callbacks (..),
     initWacom,
     getProfile,
     setProfile,
     toggleRingMode,
-    setTabletMapArea
+    setTabletMapArea,
+    ignore, ignoreAll
   )
   where
 
@@ -20,16 +22,22 @@ import XMonad
 import qualified XMonad.StackSet as W
 import qualified XMonad.Util.ExtensibleState as XS
 
+import System.Wacom.Types
 import System.Wacom.Config
 import qualified System.Wacom.Daemon as Daemon
 import qualified System.Wacom.Profiles as Profiles
 
 import qualified XMonad.Wacom as API
 
+data Callbacks = Callbacks {
+    onPlug :: TabletDevice -> IO (),
+    onUnplug :: TabletDevice -> IO ()
+  }
+
 data Wacom =
     Wacom Config Profiles.WacomHandle
   | NotInited
-  | Inited Config Profiles.WacomHandle
+  | Inited Config Callbacks Profiles.WacomHandle
   deriving (Typeable)
 
 instance ExtensionClass Wacom where
@@ -38,12 +46,20 @@ instance ExtensionClass Wacom where
 -- | Dummy data type for API implementation
 data Internal = Internal
 
+-- | Just do nothing
+ignore :: TabletDevice -> IO ()
+ignore _ = return ()
+
+-- | Do nothing on any event
+ignoreAll :: Callbacks
+ignoreAll = Callbacks ignore ignore
+
 -- | Init udev monitor daemon.
 -- This should be run from XMonad startupHook.
-initWacom :: Config -> X ()
-initWacom config = do
+initWacom :: Config -> Callbacks -> X ()
+initWacom config cbs = do
   wh <- io $ Profiles.newWacomHandle config
-  XS.put $ Inited config wh
+  XS.put $ Inited config cbs wh
   io $ Daemon.initUdevMonitor wh
   ensureDaemonRunning
   return ()
@@ -55,7 +71,7 @@ ensureDaemonRunning = do
   w <- XS.get
   case w of
     NotInited -> return NotInited 
-    Inited config wh -> do
+    Inited config cbs wh -> do
         io $ do
             forkIO $ Daemon.udevMonitor wh
             Profiles.setProfile wh "Default"
@@ -64,6 +80,8 @@ ensureDaemonRunning = do
             case r of
               Left err -> putStrLn err
               _ -> return ()
+            Profiles.setPlugCallback wh (onPlug cbs)
+            Profiles.setUnplugCallback wh (onUnplug cbs)
             return ()
         let wacom = Wacom config wh
         XS.put wacom
