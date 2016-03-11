@@ -16,6 +16,7 @@ module System.Wacom.Profiles
     getMapArea,
     setPlugCallback,
     setUnplugCallback,
+    setConfig,
 
     emptyState,
 
@@ -229,3 +230,7 @@ setUnplugCallback :: WacomHandle -> (TabletDevice -> IO ()) -> IO ()
 setUnplugCallback (WacomHandle tvar) callback = do
   modifyMVar_ tvar $ \st -> return $ st {msOnUnplug = callback}
 
+setConfig :: WacomHandle -> Config -> IO ()
+setConfig (WacomHandle tvar) cfg =
+  modifyMVar_ tvar $ \st -> return $ st {msConfig = cfg}
+  
