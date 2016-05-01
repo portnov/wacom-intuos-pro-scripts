@@ -23,7 +23,7 @@ library
                        XMonad.Wacom.Daemon
   -- other-modules:       
   -- other-extensions:    
-  build-depends:       base >=4.7 && <4.8,
+  build-depends:       base >=4.7 && <5.0,
                        template-haskell,
                        dbus, dbus-th,
                        syb,
