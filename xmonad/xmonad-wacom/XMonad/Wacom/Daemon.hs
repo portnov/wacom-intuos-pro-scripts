@@ -11,6 +11,7 @@ module XMonad.Wacom.Daemon
     setProfile,
     toggleRingMode,
     setTabletMapArea,
+    reloadConfig,
     ignore, ignoreAll
   )
   where
@@ -148,6 +149,14 @@ toggleRingMode onToggle = do
                 Right mode -> onToggle mode
                 Left err -> io $ putStrLn err
       _ -> io $ putStrLn "toggleRingMode should be called after initWacom!"
+
+reloadConfig :: Config -> X ()
+reloadConfig cfg = do
+    w <- ensureDaemonRunning
+    case w of
+      Wacom cfg wh -> do
+        io $ Profiles.setConfig wh cfg
+      _ -> io $ putStrLn "reloadConfig should be called after initWacom!"
 
 instance API.ProfileApi Internal where
   getProfile _ = getProfile

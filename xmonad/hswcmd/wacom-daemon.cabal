@@ -59,7 +59,7 @@ library
                        libnotify >= 0.1.1.0
   default-language:    Haskell2010
 
-executable hswchd
+executable hswcmd
   Main-Is: hswcmd.hs
   other-modules:     System.Wacom.Util,
                      System.Wacom.Profiles,
