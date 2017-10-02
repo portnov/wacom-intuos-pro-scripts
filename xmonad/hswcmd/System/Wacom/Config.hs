@@ -6,6 +6,7 @@ module System.Wacom.Config
     Profile (..),
     RingMode (..),
     TabletAction (..),
+    ButtonsMap (..),
     Area,
     dfltConfig,
     buildProfiles
@@ -45,19 +46,22 @@ instance FromJSON Config where
 
 type Area = String
 
+newtype ButtonsMap = ButtonsMap (M.Map Int TabletAction)
+  deriving (Show)
+
 -- | Tablet settings profile
 data Profile = Profile {
       pName :: String                    -- ^ Profile name
     , pRing :: [RingMode]                -- ^ Ring modes (for Intuos Pro models)
-    , pButtons :: M.Map Int TabletAction -- ^ Tablet buttons bindings
+    , pButtons :: ButtonsMap -- ^ Tablet buttons bindings
   }
   deriving (Show)
 
-instance FromJSON (M.Map Int TabletAction) where
+instance FromJSON ButtonsMap where
   parseJSON (Object v) = do
       let lst = H.toList v
       lst' <- mapM go lst
-      return $ M.fromList lst'
+      return $ ButtonsMap $ M.fromList lst'
     where
       go (key,val) = do
         let keyStr = T.unpack key
@@ -73,7 +77,7 @@ instance FromJSON Profile where
     Profile
       <$> v .: "name"
       <*> v .:? "ring" .!= []
-      <*> v .:? "buttons" .!= M.empty
+      <*> v .:? "buttons" .!= ButtonsMap M.empty
   parseJSON invalid = typeMismatch "Profile" invalid
 
 -- | Intuos Pro ring mode

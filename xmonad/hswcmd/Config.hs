@@ -22,8 +22,8 @@ ringScrolls = RingMode "Scroll" (Click 5) (Click 4)
 ringBrackets :: RingMode
 ringBrackets = RingMode "Brackets" (Key "[") (Key "]")
 
-buttons :: M.Map Int TabletAction
-buttons = M.fromList [
+buttons :: ButtonsMap
+buttons = ButtonsMap $ M.fromList [
            (2, Key "ctrl"),
            (3, Key "shift"),
            (13, Key "ctrl z"),

@@ -66,8 +66,8 @@ renderRingMode td r =
          printf "\"%s pad\" AbsWheelUp \"%s\"" pad (show $ ringUp r)]
     Nothing -> []
 
-renderButtons :: TabletDevice -> M.Map Int TabletAction -> [String]
-renderButtons td m =
+renderButtons :: TabletDevice -> ButtonsMap -> [String]
+renderButtons td (ButtonsMap m) =
   case dPad td of
     Nothing -> []
     Just pad ->

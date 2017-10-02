@@ -28,10 +28,11 @@ ifClass :: String -> Condition
 ifClass cls = Condition Nothing (Just cls)
 
 -- | (Condition on window, corresponding profile name)
-type Matchers = [(Condition, String)]
+newtype Matchers = Matchers [(Condition, String)]
+  deriving (Show)
 
 instance FromJSON Matchers where
-  parseJSON (Array v) = mapM parseOne (V.toList v)
+  parseJSON (Array v) = Matchers <$> mapM parseOne (V.toList v)
     where
       parseOne val@(Object obj) = do
         cond <- parseJSON val
@@ -90,11 +91,11 @@ match wi cond =
   in titleOk && classOk
 
 selectProfile :: Matchers -> WindowInfo -> String
-selectProfile [] _ = "Default"
-selectProfile ((cond, profile): xs) wi =
+selectProfile (Matchers []) _ = "Default"
+selectProfile (Matchers ((cond, profile): xs)) wi =
   if match wi cond
     then profile
-    else selectProfile xs wi
+    else selectProfile (Matchers xs) wi
 
 readConfig :: FilePath -> IO (Either ParseException Config)
 readConfig path = decodeFileEither path
