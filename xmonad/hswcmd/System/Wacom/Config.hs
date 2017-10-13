@@ -46,7 +46,7 @@ instance FromJSON Config where
 
 type Area = String
 
-newtype ButtonsMap = ButtonsMap (M.Map Int TabletAction)
+newtype ButtonsMap = ButtonsMap {unButtonsMap :: M.Map Int TabletAction}
   deriving (Show)
 
 -- | Tablet settings profile
