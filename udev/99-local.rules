@@ -1,3 +1,2 @@
 
-ACTION=="add|change", SUBSYSTEM=="usb|input|hid", ATTRS{idVendor}=="056a", ATTR{idProduct}=="0315", RUN="/usr/local/sbin/wacom-setup.sh"
-ACTION=="add|change", SUBSYSTEM=="usb|input|hid", ATTRS{idVendor}=="056a", ATTR{idProduct}=="0084", RUN="/usr/local/sbin/wacom-setup.sh"
+ACTION=="add|change", SUBSYSTEM=="usb|input|hid", DRIVERS=="wacom", RUN+="/usr/local/sbin/wacom-setup.sh -c 'chown :users /sys/bus/usb/devices/*/*/wacom_led/status_led0_select'"
