@@ -18,7 +18,7 @@ import Data.Maybe (fromMaybe)
 
 import DBus
 import DBus.Client
-import DBus.TH
+import DBus.TH.EDSL
 
 import XMonad
 import qualified XMonad.StackSet as W

@@ -25,7 +25,8 @@ library
   -- other-extensions:    
   build-depends:       base >=4.7 && <5.0,
                        template-haskell,
-                       dbus, dbus-th,
+                       dbus >= 1.0.1,
+                       dbus-th >= 0.1.3.0,
                        syb,
                        xmonad, xmonad-contrib,
                        wacom-daemon
