@@ -16,8 +16,9 @@ module System.Wacom.Config
 import Control.Applicative
 import Data.Char (isDigit)
 import qualified Data.Map as M
-import qualified Data.HashMap.Strict as H
 import Data.Aeson.Types (typeMismatch)
+import qualified Data.Aeson.KeyMap as KM
+import qualified Data.Aeson.Key as K
 import Data.Yaml
 import qualified Data.Text as T
 
@@ -59,12 +60,12 @@ data Profile = Profile {
 
 instance FromJSON ButtonsMap where
   parseJSON (Object v) = do
-      let lst = H.toList v
+      let lst = KM.toList v
       lst' <- mapM go lst
       return $ ButtonsMap $ M.fromList lst'
     where
       go (key,val) = do
-        let keyStr = T.unpack key
+        let keyStr = T.unpack $ K.toText key
         keyInt <- if all isDigit keyStr
                     then return $ read keyStr
                     else fail $ "Invalid button number " ++ keyStr
